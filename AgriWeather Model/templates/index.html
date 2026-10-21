@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Agriculture Decision Support Model</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.plot.ly/plotly-3.1.0.min.js"></script>
+  <style>
+    :root {
+      --zim-green: #009739;
+      --zim-green-dark: #00732b;
+      --zim-yellow: #FCE300;
+      --zim-red: #EF3340;
+      --zim-black: #1E293B;
+      --bg-gray: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --border-color: #E2E8F0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-gray);
+      color: var(--zim-black);
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--zim-green-dark) 0%, var(--zim-green) 100%);
+      color: white;
+      padding: 2rem 1.5rem;
+      border-bottom: 5px solid var(--zim-yellow);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header-content h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2.2rem;
+    }
+
+    .header-content p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 1rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .container { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: var(--zim-green-dark);
+      font-size: 1.25rem;
+      border-bottom: 2px solid #E2E8F0;
+      padding-bottom: 0.5rem;
+    }
+
+    .input-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .input-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+      color: #334155;
+    }
+
+    .input-group input[type="text"],
+    .input-group input[type="number"] {
+      width: 100%;
+      padding: 0.65rem 0.8rem;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--zim-green);
+    }
+
+    .input-hint {
+      font-size: 0.75rem;
+      color: #64748B;
+      margin-top: 0.25rem;
+    }
+
+    .btn-submit {
+      width: 100%;
+      background-color: var(--zim-green);
+      color: white;
+      font-weight: 700;
+      padding: 0.85rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-submit:hover {
+      background-color: var(--zim-green-dark);
+    }
+
+    .btn-weather {
+      width: 100%;
+      background-color: #0284C7;
+      color: white;
+      font-weight: 700;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 0.5rem;
+    }
+
+    .btn-weather:hover {
+      background-color: #0369A1;
+    }
+
+    .status-msg {
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      font-weight: 600;
+    }
+
+    /* Top Winner Banner */
+    .winner-card {
+      background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+      border: 2px solid var(--zim-green);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .winner-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: var(--zim-green-dark);
+      letter-spacing: 0.5px;
+    }
+
+    .winner-name {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--zim-black);
+      margin: 0.2rem 0;
+    }
+
+    .winner-yield {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--zim-green-dark);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+
+    .chart-container {
+      position: relative;
+      height: 280px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: #F1F5F9;
+      color: #475569;
+      font-weight: 700;
+    }
+
+    tr:hover {
+      background-color: #F8FAFC;
+    }
+
+    .rank-badge {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #E2E8F0;
+      text-align: center;
+      line-height: 24px;
+      font-weight: bold;
+      font-size: 0.8rem;
+    }
+
+    .rank-1 { background: var(--zim-yellow); color: #000; }
+  
+.home-btn {
+    display: inline-block;
+    padding: 10px 18px;
+    background-color: #2e7d32;
+    color: rgb(192, 233, 12);
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+.home-btn:hover {
+    background-color: #1b5e20;
+}
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-content">
+  <h1> Smart Agriculture Decision Support Model</h1>
+  <p>Enter field environmental factors or fetch live city weather to predict crop yields and feature importances.</p>
+
+<a href="{{ url_for('home') }}" class="home-btn">← Back to Home</a>
+
+
+</div>
+</header>
+  <div class="container">
+    <!-- LEFT SIDE: WEATHER AUTOFILL & FIELD INPUTS -->
+    <div>
+      <!-- AUTO-FETCH WEATHER CARD -->
+      <div class="card">
+        <h2> Get City Weather</h2>
+        <div class="input-group">
+          <label for="cityName">Enter City Name</label>
+          <input type="text" id="cityName" placeholder="e.g. Harare, Bulawayo, London">
+        </div>
+        <button type="button" class="btn-weather" onclick="fetchCityWeather()">Fetch & Autofill Weather</button>
+        <div id="weatherStatus" class="status-msg"></div>
+      </div>
+
+      <!-- INPUT FORM -->
+      <div class="card">
+        <h2>Field Conditions</h2>
+        <form id="predictionForm">
+          <div class="input-group">
+            <label for="rainfall">Rainfall (mm)</label>
+            <input type="number" id="rainfall" value="850" min="0" max="3000" step="10" required>
+            <div class="input-hint">Annual or seasonal rainfall</div>
+          </div>
+
+          <div class="input-group">
+            <label for="frost">Frost Level (Days/Index)</label>
+            <input type="number" id="frost" value="1" min="0" max="30" step="0.5" required>
+            <div class="input-hint">Range: 0 - 30 days</div>
+          </div>
+
+          <div class="input-group">
+            <label for="temperature">Average Temperature (°C)</label>
+            <input type="number" id="temperature" value="24" min="-10" max="55" step="0.5" required>
+            <div class="input-hint">Average field temperature</div>
+          </div>
+
+          <div class="input-group">
+            <label for="solar">Solar Radiation (MJ/m²/day)</label>
+            <input type="number" id="solar" value="21" min="1" max="40" step="0.5" required>
+            <div class="input-hint">Solar radiation index</div>
+          </div>
+
+          <div class="input-group">
+            <label for="wind">Wind Speed (km/h)</label>
+            <input type="number" id="wind" value="10" min="0" max="100" step="0.5" required>
+            <div class="input-hint">Average surface wind speed</div>
+          </div>
+
+          <button type="submit" class="btn-submit">Calculate Predictions</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE: RESULTS & DASHBOARD -->
+    <div>
+      <!-- HIGHEST CROP BANNER -->
+      <div class="winner-card">
+        <div>
+          <div class="winner-title">🌟 Top Recommended Crop</div>
+          <div class="winner-name" id="bestCropName">MAIZE</div>
+          <div style="font-size: 0.9rem; color: #475569;">Highest predicted yield under current conditions</div>
+        </div>
+        <div style="text-align: right;">
+          <div class="winner-yield" id="bestCropYield">6.85 t/ha</div>
+          <div style="font-size: 0.85rem; color: var(--zim-green-dark); font-weight: 600;">Optimal Choice</div>
+        </div>
+      </div>
+
+      <!-- CHARTS -->
+      <div class="charts-grid">
+        <div class="card">
+          <h2>Yield Predictions (t/ha)</h2>
+          <div class="chart-container">
+            <canvas id="yieldChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Feature Importance Weight (%)</h2>
+          <div class="chart-container">
+            <canvas id="importanceChart"></canvas>
+          </div>
+        </div>
+        <!-- CROP YIELD HEAT MAP -->
+<div class="card">
+
+    <h2>🌡️ Crop Yield Heat Map</h2>
+
+    <p>
+        Explore how rainfall and temperature affect
+        predicted crop yield for a selected crop.
+    </p>
+
+    <div class="input-group">
+
+        <label for="heatmapCrop">
+            Select Crop
+        </label>
+
+        <select id="heatmapCrop"
+                style="width:100%;
+                       padding:10px;
+                       border:2px solid #E2E8F0;
+                       border-radius:8px;
+                       font-size:1rem;">
+
+            <option value="Maize">Maize</option>
+            <option value="Wheat">Wheat</option>
+            <option value="Soybean">Soybean</option>
+            <option value="Sunflower">Sunflower</option>
+            <option value="Groundnuts">Groundnuts</option>
+            <option value="Beans">Beans</option>
+            <option value="Cotton">Cotton</option>
+            <option value="Sorghum">Sorghum</option>
+
+        </select>
+
+    </div>
+
+    <button type="button"
+            class="btn-submit"
+            id="generateHeatmapBtn">
+
+        Generate Heat Map
+
+    </button>
+
+    <p id="heatmapStatus"
+       role="status"
+       aria-live="polite">
+    </p>
+
+    <div id="yieldHeatmap"
+         style="width:100%; height:450px;">
+    </div>
+
+    <p style="font-size:0.85rem;color:#64748B;">
+        Values represent model-predicted yields (t/ha).
+        Other environmental inputs are held constant
+        at their current form values.
+    </p>
+
+</div>
+
+<!-- BOX PLOT -->
+<div class="card">
+    <h2>📦 Predicted Yield Distribution by Crop</h2>
+    <p>
+        Compare the spread of predicted yields for different crops
+        across the rainfall and temperature scenarios.
+    </p>
+    <div id="yieldBoxPlot" style="width:100%; height:450px;"></div>
+</div>
+
+<!-- SCATTER PLOT -->
+<div class="card">
+    <h2>🌦️ Rainfall vs Predicted Crop Yield</h2>
+    <p>
+        Explore how rainfall relates to predicted yield.
+        Each point represents a model prediction, coloured by temperature.
+    </p>
+    <div id="yieldScatterPlot" style="width:100%; height:450px;"></div>
+</div>
+      </div>
+
+      <!-- RANKED TABLE -->
+      <div class="card">
+        <h2>Ranked Crop Yield Summary</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Crop</th>
+              <th>Predicted Yield (t/ha)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let yieldChart, importanceChart;
+
+    // 1. FETCH WEATHER FROM OPEN-METEO API & AUTOFILL INPUTS
+    async function fetchCityWeather() {
+      const city = document.getElementById('cityName').value.trim();
+      const statusDiv = document.getElementById('weatherStatus');
+
+      if (!city) {
+        statusDiv.style.color = 'var(--zim-red)';
+        statusDiv.innerText = 'Please enter a city name.';
+        return;
+      }
+
+      statusDiv.style.color = '#0284C7';
+      statusDiv.innerText = `🔍 Searching weather for "${city}"...`;
+
+      try {
+        // Step A: Geocode city name to lat & lon
+        const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
+        const geoData = await geoRes.json();
+
+        if (!geoData.results || geoData.results.length === 0) {
+          statusDiv.style.color = 'var(--zim-red)';
+          statusDiv.innerText = `City "${city}" not found. Try another location.`;
+          return;
+        }
+
+        const location = geoData.results[0];
+        const lat = location.latitude;
+        const lon = location.longitude;
+        const country = location.country || '';
+
+        // Step B: Fetch Live Weather & Radiation Data
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,precipitation&daily=shortwave_radiation_sum&timezone=auto`;
+        const weatherRes = await fetch(weatherUrl);
+        const weatherData = await weatherRes.json();
+
+        const currentTemp = weatherData.current.temperature_2m;
+        const windSpeed = weatherData.current.wind_speed_10m;
+        const precip = weatherData.current.precipitation || 0;
+        
+        // Convert daily radiation (MJ/m²) if available, else standard fallback
+        const radiationMJ = weatherData.daily && weatherData.daily.shortwave_radiation_sum ? 
+          (weatherData.daily.shortwave_radiation_sum[0]).toFixed(1) : 21.0;
+
+        // Estimate annual/seasonal rainfall estimate based on location profile
+        const estRainfall = precip > 0 ? Math.round(precip * 150 + 400) : 750;
+        const estFrost = currentTemp < 5 ? 5 : (currentTemp < 10 ? 2 : 0);
+
+        // Step C: Autofill Form Fields
+        document.getElementById('temperature').value = currentTemp;
+        document.getElementById('wind').value = windSpeed;
+        document.getElementById('solar').value = radiationMJ;
+        document.getElementById('rainfall').value = estRainfall;
+        document.getElementById('frost').value = estFrost;
+
+        statusDiv.style.color = 'var(--zim-green-dark)';
+        statusDiv.innerText = `✅ Loaded weather for ${location.name}, ${country}! Auto-filled form.`;
+
+        // Step D: Run predictions automatically
+        calculatePredictions();
+
+      } catch (err) {
+        console.error(err);
+        statusDiv.style.color = 'var(--zim-red)';
+        statusDiv.innerText = 'Error fetching weather data. Please try again.';
+      }
+    }
+
+    // 2. CONNECT TO PYTHON FLASK BACKEND MODEL
+    async function calculatePredictions() {
+      const payload = {
+        rainfall: parseFloat(document.getElementById('rainfall').value) || 0,
+        frost: parseFloat(document.getElementById('frost').value) || 0,
+        temperature: parseFloat(document.getElementById('temperature').value) || 0,
+        solar: parseFloat(document.getElementById('solar').value) || 0,
+        wind: parseFloat(document.getElementById('wind').value) || 0
+      };
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error('Server returned error status ' + response.status);
+        }
+
+        const data = await response.json();
+        updateUI(data.predictions, data.feature_importance);
+      } catch (error) {
+        console.error("Error communicating with backend:", error);
+        alert("Could not fetch predictions from Python backend.");
+      }
+    }
+
+    // 3. UPDATE FRONTEND DASHBOARD
+    function updateUI(results, importances) {
+      // Update Winner Banner
+      document.getElementById('bestCropName').innerText = results[0].crop.toUpperCase();
+      document.getElementById('bestCropYield').innerText = results[0].yield + " t/ha";
+
+      // Update Table
+      const tBody = document.getElementById('tableBody');
+      tBody.innerHTML = "";
+      results.forEach((r, idx) => {
+        let rankClass = idx === 0 ? 'rank-1' : '';
+        let statusTag = idx === 0 ? '<b>Optimal Choice</b>' : (r.yield > 4 ? 'Suitable' : 'Low Yield');
+        tBody.innerHTML += `
+          <tr>
+            <td><span class="rank-badge ${rankClass}">${idx + 1}</span></td>
+            <td><b>${r.crop}</b></td>
+            <td>${r.yield}</td>
+            <td>${statusTag}</td>
+          </tr>
+        `;
+      });
+
+      // Update Yield Bar Chart
+      const cropLabels = results.map(r => r.crop);
+      const cropData = results.map(r => r.yield);
+
+      if (yieldChart) yieldChart.destroy();
+      yieldChart = new Chart(document.getElementById('yieldChart'), {
+        type: 'bar',
+        data: {
+          labels: cropLabels,
+          datasets: [{
+            label: 'Predicted Yield (t/ha)',
+            data: cropData,
+            backgroundColor: cropLabels.map((_, i) => i === 0 ? '#009739' : '#94A3B8'),
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      // Update Feature Importance Chart
+      if (importanceChart) importanceChart.destroy();
+      importanceChart = new Chart(document.getElementById('importanceChart'), {
+        type: 'bar',
+        data: {
+          labels: importances.map(i => i.name),
+          datasets: [{
+            label: 'Importance (%)',
+            data: importances.map(i => i.weight),
+            backgroundColor: '#00732b',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { beginAtZero: true, max: 100 } }
+        }
+      });
+    }
+    // ==========================================
+// GENERATE CROP YIELD HEAT MAP
+// ==========================================
+
+async function generateYieldHeatmap() {
+
+    const status = document.getElementById('heatmapStatus');
+
+    status.style.color = '#0284C7';
+    status.innerText = 'Generating heat map...';
+
+    const payload = {
+
+        crop: document.getElementById('heatmapCrop').value,
+
+        frost: parseFloat(
+            document.getElementById('frost').value
+        ) || 0,
+
+        solar: parseFloat(
+            document.getElementById('solar').value
+        ) || 21,
+
+        wind: parseFloat(
+            document.getElementById('wind').value
+        ) || 10
+
+    };
+
+    try {
+
+        const response = await fetch('/heatmap', {
+
+            method: 'POST',
+
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify(payload)
+
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error || 'Unable to generate heat map.'
+            );
+
+        }
+
+        // Create the interactive heat map
+        const trace = {
+
+            x: data.rainfall_values,
+
+            y: data.temperature_values,
+
+            z: data.yields,
+
+            type: 'heatmap',
+
+            colorscale: [
+
+                [0, '#EF3340'],
+
+                [0.5, '#FCE300'],
+
+                [1, '#009739']
+
+            ],
+
+            colorbar: {
+
+                title: {
+                    text: 'Yield (t/ha)'
+                }
+
+            },
+
+            hovertemplate:
+                'Rainfall: %{x} mm<br>' +
+                'Temperature: %{y} °C<br>' +
+                'Predicted yield: %{z:.2f} t/ha' +
+                '<extra></extra>'
+
+        };
+
+        const layout = {
+
+            title: {
+                text: data.crop + ' Yield Under Different Conditions'
+            },
+
+            xaxis: {
+                title: {
+                    text: 'Rainfall (mm)'
+                }
+            },
+
+            yaxis: {
+                title: {
+                    text: 'Temperature (°C)'
+                }
+            },
+
+            margin: {
+                l: 65,
+                r: 35,
+                t: 65,
+                b: 65
+            },
+
+            autosize: true
+
+        };
+
+        await Plotly.newPlot(
+
+            'yieldHeatmap',
+
+            [trace],
+
+            layout,
+
+            {
+                responsive: true,
+                displaylogo: false
+            }
+
+        );
+
+        status.style.color = '#00732b';
+
+        status.innerText =
+            'Heat map generated successfully for ' +
+            data.crop + '.';
+
+    } catch (error) {
+
+        console.error('Heat map error:', error);
+
+        status.style.color = '#EF3340';
+
+        status.innerText =
+            'Could not generate heat map: ' +
+            error.message;
+
+    }
+
+}
+
+// Attach Event Listener
+document.getElementById('predictionForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  calculatePredictions();
+});
+// Generate heat map when the button is clicked
+document.getElementById('generateHeatmapBtn')
+    .addEventListener('click', generateYieldHeatmap);
+
+// Update heat map when another crop is selected
+document.getElementById('heatmapCrop')
+    .addEventListener('change', generateYieldHeatmap);
+    // Initial load
+    // Initial dashboard load
+calculatePredictions();
+generateAdditionalPlots();
+
+// Update the scatter plot when the selected crop changes
+document.getElementById('heatmapCrop')
+    .addEventListener('change', generateYieldScatterPlot);
+
+  
+async function fetchHeatmapForCrop(crop) {
+    const response = await fetch('/heatmap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            crop: crop,
+            frost: parseFloat(document.getElementById('frost').value) || 0,
+            solar: parseFloat(document.getElementById('solar').value) || 21,
+            wind: parseFloat(document.getElementById('wind').value) || 10
+        })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || 'Could not load plot data.');
+    }
+
+    return data;
+}
+
+// BOX PLOT: compare predicted yield distributions across crops
+async function generateYieldBoxPlot() {
+    const container = document.getElementById('yieldBoxPlot');
+    container.innerHTML = '<p>Generating box plot...</p>';
+
+    const crops = [
+        'Maize', 'Wheat', 'Soybean', 'Sunflower',
+        'Groundnuts', 'Beans', 'Cotton', 'Sorghum'
+    ];
+
+    try {
+        const results = await Promise.all(
+            crops.map(crop => fetchHeatmapForCrop(crop))
+        );
+
+        const traces = results.map(data => ({
+            type: 'box',
+            name: data.crop,
+            y: data.yields.flat(),
+            boxpoints: 'outliers',
+            jitter: 0.25,
+            pointpos: 0,
+            hovertemplate:
+                'Crop: ' + data.crop +
+                '<br>Predicted yield: %{y:.2f} t/ha' +
+                '<extra></extra>'
+        }));
+
+        await Plotly.newPlot('yieldBoxPlot', traces, {
+            title: 'Predicted Yield Distribution Across Crops',
+            xaxis: { title: 'Crop' },
+            yaxis: {
+                title: 'Predicted yield (t/ha)',
+                rangemode: 'tozero'
+            },
+            boxmode: 'group',
+            margin: { b: 100, t: 65, l: 65, r: 25 }
+        }, {
+            responsive: true,
+            displaylogo: false
+        });
+
+    } catch (error) {
+        console.error('Box plot error:', error);
+        container.innerHTML =
+            '<p>Could not generate box plot: ' +
+            error.message + '</p>';
+    }
+}
+
+// SCATTER PLOT: rainfall against predicted yield
+async function generateYieldScatterPlot() {
+    const container = document.getElementById('yieldScatterPlot');
+    container.innerHTML = '<p>Generating scatter plot...</p>';
+
+    try {
+        const crop = document.getElementById('heatmapCrop').value;
+        const data = await fetchHeatmapForCrop(crop);
+
+        const rainfall = [];
+        const temperatures = [];
+        const predictedYields = [];
+
+        data.temperature_values.forEach((temperature, rowIndex) => {
+            data.rainfall_values.forEach((rain, columnIndex) => {
+                rainfall.push(rain);
+                temperatures.push(temperature);
+                predictedYields.push(
+                    data.yields[rowIndex][columnIndex]
+                );
+            });
+        });
+
+        const trace = {
+            type: 'scatter',
+            mode: 'markers',
+            name: crop,
+            x: rainfall,
+            y: predictedYields,
+            marker: {
+                size: 9,
+                opacity: 0.8,
+                color: temperatures,
+                colorscale: 'Viridis',
+                showscale: true,
+                colorbar: {
+                    title: { text: 'Temperature (°C)' }
+                }
+            },
+            customdata: temperatures,
+            hovertemplate:
+                'Rainfall: %{x} mm' +
+                '<br>Predicted yield: %{y:.2f} t/ha' +
+                '<br>Temperature: %{customdata} °C' +
+                '<extra></extra>'
+        };
+
+        await Plotly.newPlot('yieldScatterPlot', [trace], {
+            title: crop + ': Rainfall vs Predicted Yield',
+            xaxis: { title: 'Rainfall (mm)' },
+            yaxis: { title: 'Predicted yield (t/ha)' },
+            margin: { b: 65, t: 65, l: 65, r: 35 }
+        }, {
+            responsive: true,
+            displaylogo: false
+        });
+
+    } catch (error) {
+        console.error('Scatter plot error:', error);
+        container.innerHTML =
+            '<p>Could not generate scatter plot: ' +
+            error.message + '</p>';
+    }
+}
+
+// Generate both plots
+async function generateAdditionalPlots() {
+    await Promise.all([
+        generateYieldBoxPlot(),
+        generateYieldScatterPlot()
+    ]);
+}
+  </script>
+  <footer>
+    <p>&copy; Iconic_Ray 2026</p>
+  </footer>
+</body>
+</html>

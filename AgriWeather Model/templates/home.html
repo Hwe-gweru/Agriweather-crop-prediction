@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page - AgriWeather</title>
+    <style>
+        /* Reset margins and set the background image */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Beautiful farm landscape from Unsplash */
+            background: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        /* Centered card to make text readable */
+        .container {
+            background-color: rgba(255, 255, 255, 0.92); /* White with slight transparency */
+            padding: 50px 50px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+            /* Green and Yellow theme accents */
+            border-top: 8px solid #2E7D32; /* Deep Green */
+            border-bottom: 8px solid #FFC107; /* Warm Yellow */
+            overflow: hidden; /* Keeps the animation neatly inside the card */
+        }
+
+        h1 {
+            color: #2E7D32; /* Theme Green */
+            margin-top: 0;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #555;
+            font-size: 1.1em;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        /* --- FARMING ANIMATION STYLES --- */
+        .farm-scene {
+            position: relative;
+            width: 100%;
+            height: 70px;
+            margin-bottom: 30px;
+            border-bottom: 4px solid #795548; /* Brown dirt path */
+        }
+
+        /* Swaying crops in the background */
+        .crops {
+            position: absolute;
+            bottom: 4px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.5em;
+            z-index: 1;
+        }
+
+        .crop {
+            animation: sway 2s infinite alternate ease-in-out;
+            transform-origin: bottom center;
+        }
+        
+        /* Stagger the crop animations so they don't move exactly identically */
+        .crop:nth-child(1) { animation-delay: 0.0s; }
+        .crop:nth-child(2) { animation-delay: 0.3s; }
+        .crop:nth-child(3) { animation-delay: 0.6s; }
+        .crop:nth-child(4) { animation-delay: 0.9s; }
+        .crop:nth-child(5) { animation-delay: 1.2s; }
+
+        /* Driving tractor */
+        .tractor {
+            position: absolute;
+            bottom: 0px;
+            font-size: 2.2em;
+            z-index: 2;
+            animation: drive 10s linear infinite;
+        }
+
+        /* Keyframes for the swaying plants */
+        @keyframes sway {
+            0% { transform: scaleY(0.95) rotate(-5deg); }
+            100% { transform: scaleY(1.05) rotate(5deg); }
+        }
+
+        /* Keyframes for the tractor driving back and forth */
+        @keyframes drive {
+            0% { left: -20%; transform: scaleX(1); } /* Starts off-screen left */
+            45% { left: 100%; transform: scaleX(1); } /* Drives to the right */
+            50% { left: 100%; transform: scaleX(-1); } /* Flips around */
+            95% { left: -20%; transform: scaleX(-1); } /* Drives back to the left */
+            100% { left: -20%; transform: scaleX(1); } /* Flips back to start */
+        }
+        /* --------------------------------- */
+
+        /* Styled button */
+        .btn {
+            background-color: #FFC107; /* Theme Yellow */
+            color: #1a1a1a;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.05em;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            width: 100%;
+        }
+
+        /* Button hover effects */
+        .btn:hover {
+            background-color: #2E7D32; /* Changes to Green on hover */
+            color: white;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Welcome to the Home Page</h1>
+        <p>This is our AgriWeather model.</p>
+
+        <!-- Farming Animation Scene -->
+        <div class="farm-scene">
+            <div class="crops">
+                <span class="crop">🌱</span>
+                <span class="crop">🌱</span>
+                <span class="crop">🌱</span>
+                <span class="crop">🌱</span>
+                <span class="crop">🌱</span>
+            </div>
+            <div class="tractor">🚜</div>
+        </div>
+
+        <a href="{{ url_for('predict_page') }}" class="btn">Predict and Get Insights</a>
+
+
+    </div>
+
+</body>
+</html>
